@@ -1,0 +1,58 @@
+# Nome do fluxo de trabalho
+name: Deploy to GitHub Pages
+
+# Gatilho: Executar sempre que houver um push na branch "main"
+on:
+  push:
+    branches: [ "main" ]
+
+# Permissões necessárias para o token do GitHub
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Tarefas a serem executadas
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Baixa o código do seu repositório
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Configura o pnpm
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8 # ou a versão que você usa
+
+      # 3. Configura o Node.js
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # ou a versão que você usa
+          cache: 'pnpm'
+
+      # 4. Instala as dependências do projeto
+      - name: Install dependencies
+        run: pnpm install
+
+      # 5. Gera a versão final do site (cria a pasta "dist")
+      - name: Build
+        run: pnpm build
+
+      # 6. Prepara o artefato para o deploy
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 7. Faz o upload do artefato (o conteúdo da pasta "dist")
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      # 8. Publica o site no GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
